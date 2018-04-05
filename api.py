@@ -1,6 +1,39 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect, url_for
 from data import Books, Users
+from flask_login import LoginManager, current_user, login_user
+
 app = Flask(__name__)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Users.get_id(user_id)
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    books = Books()
+    user = Users()
+    if current_user.is_authenticated:
+        return jsonify(books.get_all_books())
+    user_cred = request.get_json()
+    all_users = user.all_users()
+    username_password_db = {}
+
+    for u_name in all_users:
+        username_password_db[u_name] = all_users[u_name][1]
+
+    for u_name in user_cred:
+        if u_name in username_password_db:
+            if user_cred[u_name] == username_password_db[u_name]:
+                return jsonify(books.get_all_books())
+            else:
+                return 'Wrong password'
+        else:
+            return 'Invalid username. Register ?'
 
 
 @app.route('/', methods=['GET'])
@@ -75,11 +108,13 @@ def new_user():
         username = u_name
         for e_mail in req_data[u_name]:
             email = e_mail
+            if len(str(req_data[u_name][e_mail])) < 8:
+                return 'password length is short'
             password = req_data[u_name][e_mail]
 
     user.create_user(username, email, password)
 
-    return jsonify(user.all_users())
+    return "Username : {}\nPassword : {}\n\nPlease Log In".format(username, password)
 
 
 if __name__ == '__main__':
