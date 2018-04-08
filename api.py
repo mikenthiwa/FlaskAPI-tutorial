@@ -1,6 +1,6 @@
-from flask import Flask, jsonify, request, redirect, url_for
+from flask import Flask, jsonify, request
 from data import Books, Users
-from flask_login import LoginManager, current_user, login_user
+from flask_login import LoginManager, current_user
 
 app = Flask(__name__)
 
@@ -113,8 +113,28 @@ def new_user():
             password = req_data[u_name][e_mail]
 
     user.create_user(username, email, password)
-
     return "Username : {}\nPassword : {}\n\nPlease Log In".format(username, password)
+
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def reset_password():
+    users = Users()
+
+    req_data = request.get_json()
+    user_data = users.all_users()
+    e_mail = ""
+    password = ""
+    username = ""
+    for email in req_data:
+        e_mail = email
+        password = req_data[e_mail]
+
+    for u_name in user_data:
+        username = u_name
+        if user_data[username][0] == e_mail:
+            users.change_password(username, password)
+
+    return 'Username : {}\nNew password : {}'.format(username, password)
 
 
 if __name__ == '__main__':

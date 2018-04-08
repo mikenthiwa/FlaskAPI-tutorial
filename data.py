@@ -25,14 +25,17 @@ class Books:
 
 
 class Users(UserMixin):
-    users = {'mike.nthiwa': ('mike.nthiwa@gmail.com', 12345),
-             'regina.nduku': ('reg.nduku@gmail.com', 6789)}
+    users = {}
 
     def create_user(self, username, email, password):
-        self.users[username] = (email, password)
-        meta_user_data = self.users[username]
-        email_data, password_data = meta_user_data
-        return username, email_data, password_data
+        self.users[username] = [email, password]
 
     def all_users(self):
         return self.users
+
+    def change_password(self, username, password):
+        self.users[username][1] = password
+
+
+
+
